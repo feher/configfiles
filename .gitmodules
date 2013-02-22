@@ -1,0 +1,9 @@
+[submodule "emacs/emacs.d/fg-manually-installed/ack-el"]
+	path = emacs/emacs.d/fg-manually-installed/ack-el
+	url = https://github.com/leoliu/ack-el.git
+[submodule "emacs/emacs.d/fg-manually-installed/emms"]
+	path = emacs/emacs.d/fg-manually-installed/emms
+	url = http://git.sv.gnu.org/r/emms.git
+[submodule "emacs/emacs.d/fg-manually-installed/magit"]
+	path = emacs/emacs.d/fg-manually-installed/magit
+	url = https://github.com/magit/magit.git

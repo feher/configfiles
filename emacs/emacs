@@ -1,0 +1,734 @@
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; CEDET
+;; This has to be the first thing until CEDET 1.1 makes it into the
+;; main emacs distro.
+;;
+
+;; Load only for the first emacs instance.
+
+;(let* ((num-of-emacses
+;         (string-to-number
+;           (shell-command-to-string "ps aux | grep emacs | grep -v grep | wc -l"))))
+;  (if ( = num-of-emacses 1 )
+;    (load "~/.emacs.d/fg-init/emacs-rc-cedet.el")))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; PACKAGE MANAGEMENT
+;;
+
+(add-to-list 'load-path (expand-file-name "~/.emacs.d/fg-manually-installed"))
+(add-to-list 'load-path (expand-file-name "~/.emacs.d/fg-manually-installed/emms/lisp"))
+
+;; http://www.emacswiki.org/emacs/AutoInstall
+(require 'auto-install)
+(setq auto-install-use-wget t)
+
+;; You can download Bookmark+ from MELPA. If you use Emacs 24 or
+;; later, you can both download and install it from within Emacs,
+;; easily. To do that, you first need to add ‘melpa’ to list
+;; ‘package-archives’. Then use ‘M-x list-packages’ and click
+;; `bookmark+’ in the list of available pacakges. Use code like this
+;; to add ‘melpa’ to the list of available archives:
+(when (> emacs-major-version 23)
+  (require 'package)
+  (package-initialize)
+  (add-to-list 'package-archives 
+    '("melpa" . "http://melpa.milkbox.net/packages/")
+    'APPEND))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; GENERAL
+;;
+
+(defconst zy-data-dir (format "%s" (getenv "FG_DATA_DIR")))
+(defconst zy-keep-dir (format "%s" (getenv "FG_KEEP_DIR")))
+(defconst zy-candelete-dir (format "%s" (getenv "FG_CANDELETE_DIR")))
+(let ( (csitt-file (format "%s/%s" zy-keep-dir "settings/elnemond/csitt-emacs")) )
+  (if (file-readable-p csitt-file)
+    (load csitt-file) ))
+
+(setq inhibit-startup-screen t)
+
+;; Do not make backup files
+(setq make-backup-files nil)
+
+;; Detect changed files on disk and alert the user.
+(global-auto-revert-mode 1)
+
+;; Disable color crap
+;;(global-font-lock-mode 0)
+
+;; Show matching parens
+(show-paren-mode 1)
+(setq show-paren-delay 0)
+
+;; Hide scroll bar, tool bar and menu bar.
+(if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+(if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+(if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
+
+;; Modeline settings
+;; Show 24-hour time and date on status bar
+(setq display-time-24hr-format t)
+(setq display-time-day-and-date t)
+(display-time)
+(line-number-mode 1)
+(column-number-mode 1)
+
+;; Scroll line-by-line
+(setq scroll-step 1)
+
+;; Don't beep at me
+(setq visible-bell t)
+
+;; default coding
+(prefer-coding-system 'utf-8)
+
+;; for emacs to insert spaces instead of tab chars
+(setq-default indent-tabs-mode nil)
+
+;; Make emacs use the clipboard
+;(setq x-select-enable-clipboard t)
+;(setq interprogram-paste-function 'x-cut-buffer-or-selection-value)
+
+;; No Indentation
+(require 'cc-mode)
+(add-to-list 'c-mode-common-hook
+  (lambda () (setq c-syntactic-indentation nil)))
+
+;; Proxy settings
+;;(setq url-proxy-services '(("no_proxy" . "work\\.com")
+;;                           ("http" . "proxy.work.com:911")))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; COMPILATION
+;;
+
+;; Automatically scrool the complation output buffer to the end of the
+;; buffer.
+(setq compilation-scroll-output t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; COLOR THEME
+;; (http://batsov.com/articles/2012/02/19/color-theming-in-emacs-reloaded/)
+;;
+
+(if window-system
+  (load-theme 'solarized-light t))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; BOOKMARKS
+;;
+
+;; Setup bookmarks file
+(setq bookmark-default-file "~/.emacs.d/bookmarks" bookmark-save-flag 1)
+(require 'bookmark)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; CUA
+;;
+
+;(cua-mode t)
+;(setq cua-auto-tabify-rectangles nil) ;; Don't tabify after rectangle commands
+;(transient-mark-mode 1) ;; No region when it is not highlighted
+;(setq cua-keep-region-after-copy t) ;; Standard Windows behaviour
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; DESKTOP
+;;
+
+
+(require 'desktop)
+
+(add-to-list 'desktop-modes-not-to-save 'dired-mode)
+(add-to-list 'desktop-modes-not-to-save 'Info-mode)
+(add-to-list 'desktop-modes-not-to-save 'info-lookup-mode)
+;(add-to-list 'desktop-modes-not-to-save 'fundamental-mode)
+
+;; Autosave the desktop.
+(desktop-save-mode 1)
+(setq desktop-path '("~/.emacs.d/"))
+(setq desktop-dirname "~/.emacs.d/")
+(setq desktop-load-locked-desktop nil)
+(setq desktop-save (quote if-exists))
+(setq desktop-restore-eager t)
+
+;(setq desktop-base-file-name "emacs.desktop")
+(defun my-desktop-save ()
+  (interactive)
+  ;; Don't call desktop-save-in-desktop-dir, as it prints a message.
+  (if (eq (desktop-owner) (emacs-pid))
+      (desktop-save desktop-dirname)))
+(add-hook 'auto-save-hook 'my-desktop-save)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; ORG
+;;
+
+;(require 'org-install)
+;(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+;(define-key global-map "\C-cl" 'org-store-link)
+;(define-key global-map "\C-ca" 'org-agenda)
+;(setq org-log-done t)
+
+;(setq org-agenda-files (list (format "%s/doc/notes.org" zy-keep-dir)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; DESKTOP MENU
+;;
+;
+;(require 'desktop-menu)
+;(setq desktop-menu-autosave 3.0)
+;(setq desktop-menu-directory "~/.emacs.d/desktop-menu")
+;(setq desktop-menu-clear t)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; EGG GIT
+;;
+
+;(add-to-list 'load-path (expand-file-name "~/.emacs.d/fg-manually-installed/egg"))
+;(require 'egg)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; MAGIT
+;;
+
+(add-to-list 'load-path (expand-file-name "~/.emacs.d/fg-manually-installed/magit"))
+(require 'magit)
+(require 'magit-blame)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; ICICLES
+;;
+;; (require 'icicles)
+;; (icy-mode 1)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; IDO (do not use with ICICLES)
+;;
+
+;; http://www.emacswiki.org/emacs/InteractivelyDoThings
+;; http://www.masteringemacs.org/articles/2010/10/10/introduction-to-ido-mode/
+(require 'ido)
+(setq ido-enable-flex-matching t)
+(setq ido-everywhere t)
+(ido-mode 1)
+
+(require 'ido-ubiquitous)
+
+;; Add bookmarked directory completion to IDO.
+;; http://scottfrazersblog.blogspot.fi/2009/12/emacs-using-bookmarked-directories.html
+;;
+;; "
+;; Now that we have Ido acting a bit more sensibly, let's use it to choose 
+;; a bookmark in dired and switch to that directory (I am assuming here you
+;; already have Ido enabled).  I like things in most recently used (MRU) order,
+;; so when we pick a bookmark we'll also move it to the top of the bookmark list:
+;; "
+
+(defun zy-ido-bookmark-jump ()
+  "Jump to bookmark using ido"
+  (interactive)
+  (let ((dir (zy-ido-get-bookmark-dir)))
+    (when dir
+      (find-alternate-file dir))))
+
+(defun zy-ido-get-bookmark-dir ()
+  "Get the directory of a bookmark."
+  (let* ((name (ido-completing-read "Use dir of bookmark: " (bookmark-all-names) nil t))
+         (bmk (bookmark-get-bookmark name)))
+    (when bmk
+      (setq bookmark-alist (delete bmk bookmark-alist))
+      (push bmk bookmark-alist)
+      (let ((filename (bookmark-get-filename bmk)))
+        (if (file-directory-p filename)
+            filename
+          (file-name-directory filename))))))
+
+(defun zy-ido-dired-mode-hook ()
+  (define-key dired-mode-map "$" 'zy-ido-bookmark-jump))
+
+(add-hook 'dired-mode-hook 'zy-ido-dired-mode-hook)
+
+;; "
+;; Now in dired you press '$' to choose a bookmarked directory to switch to.
+;; I stole '$' away from dired-hide-subdir, which I never use, because it's 
+;; a mnemonic device as I'll explain later.
+;;
+;; In Ido:
+;; That's good for dired, but it would be nice to be able to use bookmarks to
+;; switch directories when you are doing a regular ido-find-file with "C-x C-f":
+;; "
+
+(defun zy-ido-use-bookmark-dir ()
+  "Get directory of bookmark"
+  (interactive)
+  (let* ((enable-recursive-minibuffers t)
+         (dir (zy-ido-get-bookmark-dir)))
+    (when dir
+      (ido-set-current-directory dir)
+      (setq ido-exit 'refresh)
+      (exit-minibuffer))))
+
+(define-key ido-file-dir-completion-map (kbd "$") 'zy-ido-use-bookmark-dir)
+
+;; "
+;; Now when you are opening a file, you can type '$', choose a bookmark, then 
+;; ido will restart the find-file from that location.
+;;
+;; It has a quirk that after ido gets reseated in the new directory you can't
+;; navigate up, only down.  I get around this by hitting "C-e", editing the
+;; path, then "RET" to go back to Ido.  It's somewhat annoying, but it's
+;; only a couple keystrokes, and I don't do it often enough to motivate me to
+;; try to fix it.
+;; "
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; GOTO-LAST-CHANGE
+;;
+
+(autoload 'goto-last-change "goto-last-change"
+  "Set point to the position of the last change." t)
+(global-set-key (kbd "C-x g c") 'goto-last-change)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; SMEX (do not use with ICICLES)
+;;
+
+(require 'smex) ; Not needed if you use package.el
+(smex-initialize) ; Can be omitted. This might cause a (minimal) delay
+                  ; when Smex is auto-initialized on its first run.
+
+;; Bind some keys:
+(global-set-key (kbd "M-x") 'smex)
+(global-set-key (kbd "M-X") 'smex-major-mode-commands)
+;; This is your old M-x.
+;; (global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; AUTOCOMPLETE
+;;
+
+(require 'auto-complete-config)
+(add-to-list 'ac-dictionary-directories (expand-file-name "~/.emacs.d/ac-dict"))
+(ac-config-default)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; RECENTF
+;;
+
+(require 'recentf)
+(recentf-mode 1)
+(setq recentf-save-file "~/.emacs.d/.recentf")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; BITLBEE & ERC
+;;
+
+(if zy-var-bitlbee-username
+  (progn
+    (defun my-connect-to-erc ()
+      "Connect to IM networks using bitlbee."
+      (interactive)
+      (require 'erc)
+      (erc :server "localhost" :port 6667 :nick zy-var-bitlbee-username))
+    
+    (defun zy-bitlbee-identify ()
+      "Internal: Used to automatically identify into bitlbee."
+      (when (and (string= "localhost" erc-session-server)
+                 (string= "&bitlbee" (buffer-name)))
+        (erc-message "PRIVMSG" (format "%s identify %s %s"
+                                 (erc-default-target)
+                                 zy-var-bitlbee-username
+                                 zy-var-bitlbee-nemondki))))
+    
+    (add-hook 'erc-join-hook 'zy-bitlbee-identify)
+  )
+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; EMMS - Emacs Multimedia System
+;; Very easy to use! Check the manual on the home page!
+;;
+
+(defun my-emms ()
+  (interactive)
+  (require 'emms-setup)
+  (emms-standard)
+  (emms-default-players)
+  (setq emms-source-file-default-directory zy-data-dir))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; TRAMP
+;;
+
+(defun my-tramp ()
+  (interactive)
+  (require 'tramp))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; SUNRISE COMMANDER
+;;
+
+(defun my-sunrise ()
+  (interactive)
+  (require 'sunrise-commander)
+  (add-to-list 'auto-mode-alist '("\\.srvm\\'" . sr-virtual-mode)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; BATTERY
+;;
+
+(require 'battery)
+(setq battery-mode-line-format " #%b %p %t")
+(setq battery-load-critical 7)
+(setq battery-load-low 25)
+(setq battery-update-interval 5)
+(display-battery-mode t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; XCLIP
+;; For using the X11 clipboard when running emacs in an X terminal
+;; emulator.
+;;
+
+(xclip-mode 1)
+;; Force loading of xclip. It is necessary when running emacs
+;; inside GNU Screen.
+(turn-on-xclip)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; ACK-GREP
+;; From https://github.com/leoliu/ack-el
+;;
+
+(add-to-list 'load-path (expand-file-name "~/.emacs.d/fg-manually-installed/ack-el"))
+(autoload 'ack "ack" nil t)
+(autoload 'pcomplete/ack "pcmpl-ack")
+(autoload 'pcomplete/ack-grep "pcmpl-ack")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; GNU GLOBAL
+;;
+
+(let ( (gtags-dir (format "%s/apps/installed-from-source/share/gtags" zy-candelete-dir)) )
+  (if (file-accessible-directory-p gtags-dir)
+    (progn
+      (add-to-list 'load-path gtags-dir)
+      
+      ;; Use gtags' own keymappings.
+      ;(setq gtags-suggested-key-mapping t)
+      
+      (autoload 'gtags-mode "gtags" "" t)
+      (add-hook 'c-mode-common-hook
+          '(lambda ()
+             (gtags-mode 1)
+             ;; Switch between source/header.
+             (local-set-key (kbd "C-c o") 'ff-find-other-file)
+          ))
+      (add-hook 'gtags-mode-hook
+        '(lambda ()
+           (define-key gtags-mode-map (kbd "C-c t") 'gtags-find-tag-from-here)
+           (define-key gtags-mode-map (kbd "C-c s") 'gtags-find-symbol)
+           (define-key gtags-mode-map (kbd "C-c T") 'gtags-find-tag)
+           (define-key gtags-mode-map (kbd "C-c r") 'gtags-find-rtag)
+           (define-key gtags-mode-map (kbd "C-c g") 'gtags-find-with-grep)
+           (define-key gtags-mode-map (kbd "C-c b") 'gtags-pop-stack)
+        ))
+      
+      ;; Highlight current line in gtags search result buffer.
+      (defface gtags-hl-line '((t (:foreground "green")))
+        "Face to use for `hl-line-face'." :group 'hl-line)
+      (add-hook 'gtags-select-mode-hook
+        '(lambda ()
+           (setq hl-line-face 'gtags-hl-line)
+           (hl-line-mode 1)
+           (define-key gtags-select-mode-map (kbd "C-c b") 'gtags-pop-stack)
+        ))
+    ) ; progn
+  ) ; if
+) ; let
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; RTAGS
+;;
+
+(if zy-candelete-dir
+  (let ( (rtags-dir (format "%s/%s" zy-candelete-dir "apps/rtags")) )
+    (if (file-accessible-directory-p rtags-dir)
+      (progn
+        (add-to-list 'load-path rtags-dir)
+        (require 'rtags)
+        (rtags-enable-standard-keybindings)
+      )
+    )
+  )
+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; G-CLIENT
+;;
+;
+;(add-to-list 'load-path "~/.emacs.d/fg-manually-installed/emacspeak/lisp/g-client")
+;(load-library "g")
+;(setq g-user-email zy-var-email-address)
+;(gcal-emacs-calendar-setup)
+;(setq g-html-handler 'w3m-buffer)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; ALIASES
+;;
+
+;; I use query-replace-regexp so frequently that I have an alias for it: 
+;(defalias 'my-qrr 'query-replace-regexp)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; FUNCTIONS
+;;
+
+;; Delete all the trailing whitespaces and tabs across the current buffer
+(defun my-delete-trailing-whitespaces-and-untabify ()
+  "Delete all the trailing white spaces, and convert all tabs to multiple
+   spaces across the current buffer."
+  (interactive "*")
+  (delete-trailing-whitespace)
+  (untabify (point-min) (point-max)))
+
+;; Convert a buffer from DOS `^M' end of lines to Unix end of lines
+(defun my-dos-to-unix ()
+  "Cut all visible ^M from the current buffer."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (search-forward "\r" nil t)
+      (replace-match ""))))
+
+;; Convert a buffer from Unix end of lines to DOS `^M' end of lines
+(defun my-unix-to-dos ()
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (search-forward "\n" nil t)
+      (replace-match "\r\n"))))
+
+;; "prefix" means the C-u key combination.
+(defun my-insert-date (prefix)
+  "Insert the current date in ISO format. With prefix-argument,
+add day of week. With two prefix arguments, add day of week and
+time."
+  (interactive "P")
+  (let ((format (cond ((not prefix) "%Y-%m-%d")
+                      ((equal prefix '(4)) "%Y-%m-%d %a")
+                      ((equal prefix '(16)) "%Y-%m-%d %a %H:%M %z"))))
+    (insert (format-time-string format))))
+
+(defun my-insert-note-separator ()
+  "Insert a note separator. It is mean to be used when Gabika is
+making notes"
+  (interactive)
+  (let ((format "------------------------------------------------------------%Y-%m-%d"))
+    (insert (format-time-string format))))
+
+(defun my-style-off ()
+  (interactive)
+  (setq c-syntactic-indentation nil))
+
+(defun my-shell-command (command arg)
+  "Unifies `shell-command' and `shell-command-on-region'. If no region is
+selected, run a shell command just like M-x shell-command (M-!).  If
+no region is selected and an argument is a passed, run a shell command
+and place its output after the mark as in C-u M-x `shell-command' (C-u
+M-!).  If a region is selected pass the text of that region to the
+shell and replace the text in that region with the output of the shell
+command as in C-u M-x `shell-command-on-region' (C-u M-|). If a region
+is selected AND an argument is passed (via C-u) send output to another
+buffer instead of replacing the text in region."
+  (interactive (list (read-from-minibuffer "Shell command: " nil nil nil 'shell-command-history)
+                     current-prefix-arg))
+  (let ((p (if mark-active (region-beginning) 0))
+        (m (if mark-active (region-end) 0)))
+    (if (= p m)
+        ;; No active region
+        (if (eq arg nil)
+          (shell-command command)
+          (shell-command command t))
+        ;; Active region
+        (if (eq arg nil)
+          (shell-command-on-region p m command t t)
+          (shell-command-on-region p m command)))))
+
+(defun my-indent-frex ()
+  "Indent code according to FREx style."
+  (interactive)
+  (my-shell-command "fg-indent.sh frex" nil)
+  )
+
+(defun my-create-code-template (filename-and-templates)
+  "Create source code file with pre-set leading comments, etc..."
+  (interactive
+    "sEnter filename and template types (separated by spaces): ")
+  (shell-command
+    (format "fg-create-code-template.sh %s &" filename-and-templates))
+  )
+
+(defun my-insert-code-comment (template)
+  "Insert leading-comment at point according to the given template."
+  (interactive
+    (list
+      (completing-read
+        "Enter template types (separated by spaces): "
+        '("c" "cc" "cpp" "hh" "h" "sh"))))
+  (let ( (command (if (buffer-file-name)
+                     (format "fg-print-code-comment.sh name=%s %s &"
+                       (file-name-sans-extension
+                         (file-name-nondirectory (buffer-file-name)))
+                       template)
+                     (format "fg-print-code-comment.sh %s %s &" template)) ) )
+    (my-shell-command command t)
+  )
+)
+
+(defun my-delete-blank-lines (start end)
+  "Delete all the empty lines in the selected region or between point and EOF"
+  (interactive "r")
+  (flush-lines "^\\s-*$" start end nil))
+
+(defun my-collapse-blank-lines (start end)
+  "Collapse multiple empty lines into one empty line in the region or between point and EOF"
+  (interactive "r")
+  (replace-regexp "^\n\\{2,\\}" "\n" nil start end))
+
+(defun my-compile-cpp-scratchpad ()
+  "Compiles the ScratchPad.cpp"
+  (interactive)
+  (compile "cd ../build.Debug; make")
+  )
+
+(defun my-kill-all-dired-buffers()
+  "Kill all dired buffers."
+  (interactive)
+  (save-excursion
+    (let((count 0))
+      (dolist(buffer (buffer-list))
+        (set-buffer buffer)
+        (when (equal major-mode 'dired-mode)
+          (setq count (1+ count))
+          (kill-buffer buffer)))
+      (message "Killed %i dired buffer(s)." count ))))
+
+;; (defun zy-kill-region ()
+;;   (interactive)
+;;   (let ((p (if mark-active (region-beginning) 0))
+;;         (m (if mark-active (region-end) 0)))
+;;     (if (/= p m)
+;; ;;      (shell-command-on-region p m "xclip -selection clipboard")))
+;;       (shell-command-on-region p m "cat")))
+;;   )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; KEYS
+;;
+
+;; Change isearch to isearch-regex. It is more powerful.
+;; Original: M C-s
+(global-set-key "\C-s" 'isearch-forward-regexp)
+;; Original: M C-r
+(global-set-key "\C-r" 'isearch-backward-regexp)
+
+(defun my-kill-word-under-cursor ()
+  "Kill the whole word under the cursor."
+  (interactive)
+  (insert "kill")
+  (kill-word 1)
+  (backward-kill-word 1))
+;; (global-set-key "\M-d" 'my-kill-word-under-cursor)
+
+(defun my-kill-yank-to-end-of-line ()
+  "Kill and yank without changing the modified state of the buffer."
+  (interactive)
+  (let ((beg (point)))
+    (move-end-of-line nil)
+    (kill-ring-save beg (point))
+    (goto-char beg)
+  )
+)
+(global-set-key "\C-x\C-y" 'my-kill-yank-to-end-of-line)
+
+;; Make M-% be regexp aware by default.
+(global-set-key "\M-%" 'query-replace-regexp)
+
+;; Invoke M-x without the Alt key:
+;; https://sites.google.com/site/steveyegge2/effective-emacs
+;; The key sequence I use is Ctrl-x Ctrl-m. Note that when you 
+;; invoke a 2-key sequence with the same modifier key, you can 
+;; just hold down the modifier key, then press the 2 keys. So with 
+;; this key sequence, invoking M-x involves pressing and holding Ctrl,
+;; typing x, then typing m.
+(global-set-key "\C-x\C-m" 'execute-extended-command)
+
+;; ibuffer is nicer then normal list-buffers
+(global-set-key "\C-x\C-b" 'ibuffer)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; CUSTOM
+;;
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(ansi-color-names-vector ["#c0c0c0" "#336c6c" "#806080" "#0f2050" "#732f2c" "#23733c" "#6c1f1c" "#232333"])
+ '(custom-safe-themes (quote ("1e7e097ec8cb1f8c3a912d7e1e0331caeed49fef6cff220be63bd2a6ba4cc365" "fc5fcb6f1f1c1bc01305694c59a1a861b008c534cae8d0e48e4d5e81ad718bc6" "be7eadb2971d1057396c20e2eebaa08ec4bfd1efe9382c12917c6fe24352b7c1" "34543312860bbc58b2fcf4d24a9bdc5c114347f16903ac9d7ae70f3c44616a9e" default)))
+ '(fci-rule-color "#c7c7c7")
+ '(vc-handled-backends (quote (RCS CVS SVN SCCS Bzr Hg Arch))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(ac-completion-face ((t (:background "green" :foreground "black" :underline t)))))
+

@@ -1,0 +1,24 @@
+" Change the leader key to some easily reachable one.
+let mapleader = "-"
+
+" NERD Tree
+let NERDChristmasTree = 1
+let NERDTreeShowHidden = 1
+let NERDTreeWinPos = "right"
+noremap <Leader>.f :NERDTreeToggle<cr>
+
+" BufExplorer
+noremap <Leader>.b :BufExplorer<cr>
+
+" Taglist
+noremap <Leader>.t :Tlist<cr>
+
+" Session manager
+noremap <Leader>sl :SessionList<cr>
+noremap <Leader>ss :SessionSave<cr>
+noremap <Leader>sa :SessionSaveAs 
+
+" Misc
+nnoremap <Leader>cd :cd %:p:h<CR>:pwd<CR>
+syntax off
+
