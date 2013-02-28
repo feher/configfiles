@@ -6,6 +6,7 @@ emacs/emacs.d/bookmarks
 emacs/emacs.d/ede-projects.el
 emacs/emacs.d/.emacs.desktop
 emacs/emacs.d/.emacs.desktops
+emacs/emacs.d/.emacs.desktop.lock
 emacs/emacs.d/.recentf
 emacs/emacs.d/session.*
 emacs/emacs.d/srecode-map.el
